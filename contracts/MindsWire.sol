@@ -1,52 +1,43 @@
 pragma solidity ^0.4.13;
 
 import './MindsToken.sol';
-import './MindsSupporterToken.sol';
-
+import './MindsWireStorage.sol';
 
 contract MindsWire {
 
   struct Wire {
     uint timestamp;
     uint value;
-    
   }
 
-  // Mapping of creators to their wires
-  mapping(address => Wire[]) creators;
+  MindsWireStorage public s;
 
-  // Mapping of supporters to their wires
-  mapping(address =>  Wire[]) supporters;
+  function MindsWire(address _storage) {
+    s = MindsWireStorage(_storage);
+  }
 
-
-  //function send(address creator, uint256 value) {
-  //  bool transfered = transferTokensToCreator(creator, value);
-
-  //  if (transfered) {
-  //    createSupporterToken(creator);
-  //  }
-  //}
-
-  //function transferTokensToCreator(address creator, uint256 value) returns (bool) {
-    //MindsToken token = new MindsToken();
-    //return token.transfer(creator, value);
-  //}
-
-  function test() public returns (bool) {
-    supporters[msg.sender][msg.sender].push(Wire(block.timestamp, 1));
+  function wireTo(address receiver, uint amount) public returns (bool) {
+    s.createWire(msg.sender, receiver, amount);
     return true;
   }
-  
-  function countWires() public constant returns (uint) {
-    return supporters[msg.sender][msg.sender].length;
+
+  function hasSent(address receiver, uint amount) public constant returns (bool) {
+    uint total;
+
+    Wire memory _wire;
+
+    uint len = s.countWires(receiver, msg.sender);
+
+    for (uint i = 0; i < len; i++) {
+      (_wire.timestamp, _wire.value) = s.wires(receiver, msg.sender, i);
+      total += _wire.value;
+    }
+
+    if (total > amount) {
+      return true;
+    }
+
+    return false;
   }
-
-  //function 
-
-  function createSupporterToken(address creator) {
-    MindsSupporterToken st = new MindsSupporterToken();
-    st.create(creator);
-  }
-
 
 }

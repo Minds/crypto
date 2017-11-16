@@ -18,17 +18,24 @@ contract MindsWire {
     token = MindsToken(_token);
   }
 
-  function canIWire() public constant returns (uint) {
-    return token.balanceOf(msg.sender);
+  function canIWire() public constant returns (bool) {
+    uint balance = token.balanceOf(msg.sender);
+    uint allowed = token.allowance(msg.sender, address(this));
+
+    if (allowed > 0 && balance > 0) {
+      return true;
+    }
+
+    return false;
   }
 
-  function wireTo(address receiver, uint amount) public returns (bool) {
+  function wire(address receiver, uint amount) public returns (bool) {
     token.transferFrom(msg.sender, receiver, amount);
     s.createWire(msg.sender, receiver, amount);
     return true;
   }
 
-  function hasSent(address receiver, uint amount) public constant returns (bool) {
+  function hasSent(address receiver, uint amount, uint timestamp) public constant returns (bool) {
     uint total;
 
     Wire memory _wire;
@@ -37,7 +44,10 @@ contract MindsWire {
 
     for (uint i = 0; i < len; i++) {
       (_wire.timestamp, _wire.value) = s.wires(receiver, msg.sender, i);
-      total += _wire.value;
+
+      if (_wire.timestamp >= timestamp) {
+        total += _wire.value;
+      }
     }
 
     if (total >= amount) {

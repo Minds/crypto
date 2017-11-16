@@ -1,8 +1,6 @@
 pragma solidity ^0.4.13;
 
 import './MindsToken.sol';
-import './MindsSupporterToken.sol';
-
 
 contract MindsWireStorage {
 

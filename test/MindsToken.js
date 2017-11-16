@@ -1,14 +1,14 @@
-var MetaCoin = artifacts.require("./MetaCoin.sol");
+var MindsToken = artifacts.require("./MindsToken.sol");
 
-contract('MetaCoin', function(accounts) {
-  it("should put 10000 MetaCoin in the first account", function() {
-    return MetaCoin.deployed().then(function(instance) {
-      return instance.getBalance.call(accounts[0]);
+contract('MindsToken', function(accounts) {
+  it("the first account should have 0 tokens", function() {
+    return MindsToken.deployed().then(function(instance) {
+      return instance.balanceOf(accounts[0]);
     }).then(function(balance) {
-      assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+      assert.equal(balance.valueOf(), 0, "The first account has more than 0 tokens");
     });
   });
-  it("should call a function that depends on a linked library", function() {
+  /*it("should call a function that depends on a linked library", function() {
     var meta;
     var metaCoinBalance;
     var metaCoinEthBalance;
@@ -59,5 +59,5 @@ contract('MetaCoin', function(accounts) {
       assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
       assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
     });
-  });
+  });*/
 });

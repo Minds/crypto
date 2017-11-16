@@ -10,13 +10,20 @@ contract MindsWire {
     uint value;
   }
 
+  MindsToken public token;
   MindsWireStorage public s;
 
-  function MindsWire(address _storage) {
+  function MindsWire(address _storage, address _token) {
     s = MindsWireStorage(_storage);
+    token = MindsToken(_token);
+  }
+
+  function canIWire() public constant returns (uint) {
+    return token.balanceOf(msg.sender);
   }
 
   function wireTo(address receiver, uint amount) public returns (bool) {
+    token.transferFrom(msg.sender, receiver, amount);
     s.createWire(msg.sender, receiver, amount);
     return true;
   }
@@ -33,7 +40,7 @@ contract MindsWire {
       total += _wire.value;
     }
 
-    if (total > amount) {
+    if (total >= amount) {
       return true;
     }
 

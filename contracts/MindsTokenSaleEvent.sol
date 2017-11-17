@@ -68,7 +68,7 @@ contract MindsTokenSaleEvent {
     token.transferFrom(wallet, beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
-    //forwardFunds();
+    forwardFunds();
   }
 
   // send ether to the fund collection wallet
@@ -86,7 +86,7 @@ contract MindsTokenSaleEvent {
 
   // @return true if crowdsale event has ended
   function hasEnded() public constant returns (bool) {
-    return now > endTime;
+    return block.timestamp > endTime;
   }
 
 }

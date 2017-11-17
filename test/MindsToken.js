@@ -1,63 +1,23 @@
 var MindsToken = artifacts.require("./MindsToken.sol");
 
-contract('MindsToken', function(accounts) {
-  it("the first account should have 0 tokens", function() {
-    return MindsToken.deployed().then(function(instance) {
-      return instance.balanceOf(accounts[0]);
-    }).then(function(balance) {
-      assert.equal(balance.valueOf(), 0, "The first account has more than 0 tokens");
-    });
+contract('MindsToken', (accounts) => {
+  let token;
+
+  beforeEach(async () => {
+    token = await MindsToken.new();
   });
-  /*it("should call a function that depends on a linked library", function() {
-    var meta;
-    var metaCoinBalance;
-    var metaCoinEthBalance;
 
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(accounts[0]);
-    }).then(function(outCoinBalance) {
-      metaCoinBalance = outCoinBalance.toNumber();
-      return meta.getBalanceInEth.call(accounts[0]);
-    }).then(function(outCoinBalanceEth) {
-      metaCoinEthBalance = outCoinBalanceEth.toNumber();
-    }).then(function() {
-      assert.equal(metaCoinEthBalance, 2 * metaCoinBalance, "Library function returned unexpected function, linkage may be broken");
-    });
+  it("the first account should have 0 tokens", async () => {
+    let balance = await token.balanceOf(accounts[0]);
+    assert.equal(balance.valueOf(), 0, "The first account has more than 0 tokens");
   });
-  it("should send coin correctly", function() {
-    var meta;
 
-    // Get initial balances of first and second account.
-    var account_one = accounts[0];
-    var account_two = accounts[1];
+  it("it should mint 10M ** 18 tokens", async () => {
+    let minted = await token.mint(accounts[0], 10000000 * (10**18));
+    assert.equal(minted.logs[0].event, 'Mint');
 
-    var account_one_starting_balance;
-    var account_two_starting_balance;
-    var account_one_ending_balance;
-    var account_two_ending_balance;
+    let total = await token.totalSupply();
+    assert.equal(total, 10000000 * (10**18), "Total tokens do not equal 10,000,000,000,000,000,000,000,000");
+  });
 
-    var amount = 10;
-
-    return MetaCoin.deployed().then(function(instance) {
-      meta = instance;
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_starting_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_starting_balance = balance.toNumber();
-      return meta.sendCoin(account_two, amount, {from: account_one});
-    }).then(function() {
-      return meta.getBalance.call(account_one);
-    }).then(function(balance) {
-      account_one_ending_balance = balance.toNumber();
-      return meta.getBalance.call(account_two);
-    }).then(function(balance) {
-      account_two_ending_balance = balance.toNumber();
-
-      assert.equal(account_one_ending_balance, account_one_starting_balance - amount, "Amount wasn't correctly taken from the sender");
-      assert.equal(account_two_ending_balance, account_two_starting_balance + amount, "Amount wasn't correctly sent to the receiver");
-    });
-  });*/
 });

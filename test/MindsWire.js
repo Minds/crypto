@@ -2,6 +2,8 @@ var MindsWire = artifacts.require("./MindsWire.sol");
 var MindsWireStorage = artifacts.require("./MindsWireStorage.sol");
 var MindsToken = artifacts.require("./MindsToken.sol");
 
+var increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
+
 contract('MindsWire', (accounts) => {
   let wire,
     storage,
@@ -58,10 +60,24 @@ contract('MindsWire', (accounts) => {
     assert.equal(has, false);
   });
 
-  /*it("should deny that a wire was sent within the last month if I sent a wire 32 days ago", async () => {
-    let ts = web3.eth.getBlock('latest').timestamp -  (86400 * 32); //32 days ago
+  it("should deny that a wire was sent out of period", async () => {
+    token.approve(wire.address, 10, { from: sender });
+    await wire.wire(receiver, 10, { from: sender });
+    
+    let ts = web3.eth.getBlock('latest').timestamp +  (86400 * 30); //30 days in the future
     let has = await wire.hasSent(receiver, 10, ts, { from: sender });
     assert.equal(has, false);
-  });*/
+  });
+
+  it("should confirm that a multiple wires were sent within the last month", async () => {
+    token.approve(wire.address, 30, { from: sender });
+    await wire.wire(receiver, 10, { from: sender });
+    await wire.wire(receiver, 10, { from: sender });
+    await wire.wire(receiver, 10, { from: sender });
+
+    let ts = web3.eth.getBlock('latest').timestamp -  (86400 * 30); //30 days ago
+    let has = await wire.hasSent(receiver, 30, ts, { from: sender });
+    assert.equal(has, true);
+  });
 
 });

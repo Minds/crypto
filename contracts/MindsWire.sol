@@ -13,6 +13,14 @@ contract MindsWire {
   MindsToken public token;
   MindsWireStorage public s;
 
+  /**
+   * event for wire sending
+   * @param sender who sent the wire
+   * @param receiver who receive the wire
+   * @param amount weis sent
+   */
+  event WireSent(address sender, address receiver, uint256 amount);
+
   function MindsWire(address _storage, address _token) {
     s = MindsWireStorage(_storage);
     token = MindsToken(_token);
@@ -32,6 +40,7 @@ contract MindsWire {
   function wire(address receiver, uint amount) public returns (bool) {
     token.transferFrom(msg.sender, receiver, amount);
     s.createWire(msg.sender, receiver, amount);
+    WireSent(msg.sender, receiver, amount);
     return true;
   }
 

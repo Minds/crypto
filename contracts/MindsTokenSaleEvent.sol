@@ -31,7 +31,7 @@ contract MindsTokenSaleEvent {
    * @param value weis paid for purchase
    * @param amount amount of tokens purchased
    */
-  event TokenPurchase(address indexed purchaser, address indexed beneficiary, uint256 value, uint256 amount);
+  event TokenPurchase(address purchaser, address beneficiary, uint256 value, uint256 amount);
 
   function MindsTokenSaleEvent(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, address _token) {
     require(_startTime >= now);

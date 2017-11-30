@@ -39,6 +39,31 @@ contract('MindsPeerBoost', (accounts) => {
 
   });
 
+  it("should not send boost with the same guid", async () => {
+    //we need to approve funds to the boost contract first
+    token.approve(boost.address, 10, { from: sender });
+
+    await boost.boost(2123, receiver, 1, { from: sender });
+    assert.equal(await token.balanceOf(boost.address), 1);
+
+    let _boost = await storage.boosts(2123);
+    assert.equal(_boost[0], sender);
+    assert.equal(_boost[1], receiver);
+    assert.equal(_boost[2].toNumber(), 1);
+    assert.equal(_boost[3], false);
+
+    let err = false;
+
+    try {
+      await boost.boost(2123, receiver, 5, { from: sender });
+    } catch (e) {
+      err = true;
+    }
+
+    assert.equal(err, true);
+
+  });
+
   it("should revoke a boost", async () => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 20, { from: sender });

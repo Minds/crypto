@@ -56,6 +56,16 @@ contract MindsPeerBoost {
   }
 
   function boost(uint256 guid, address receiver, uint amount) public returns (bool) {
+
+    PeerBoost memory _boost;
+
+    //get the boost
+    (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
+
+    //must not exists
+    require(_boost.sender == 0);
+    require(_boost.receiver == 0);
+
     //spend tokens and store here
     token.transferFrom(msg.sender, address(this), amount);
 

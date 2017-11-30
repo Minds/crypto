@@ -88,6 +88,37 @@ contract('MindsPeerBoost', (accounts) => {
 
   });
 
+  it("should not revoke a boost twice", async () => {
+    //we need to approve funds to the boost contract first
+    token.approve(boost.address, 20, { from: sender });
+
+    await boost.boost(2223, receiver, 20, { from: sender });
+    assert.equal(await token.balanceOf(boost.address), 20);
+
+    await boost.revoke(2223, { from: sender });
+
+    let err = false;
+
+    try {
+      await boost.revoke(2223, { from: sender });
+    } catch (e) {
+      err = true;
+    }
+
+    assert.equal(err, true);
+
+    let _boost = await storage.boosts(2223);
+    assert.equal(_boost[0], sender);
+    assert.equal(_boost[1], receiver);
+    assert.equal(_boost[2].toNumber(), 20);
+    assert.equal(_boost[3], true);
+
+    assert.equal(await token.balanceOf(boost.address), 0);
+    assert.equal(await token.balanceOf(sender), 100);
+    assert.equal(await token.balanceOf(receiver), 0);
+
+  });
+
   it("should accept a boost", async () => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 30, { from: sender });
@@ -138,6 +169,36 @@ contract('MindsPeerBoost', (accounts) => {
 
   });
 
+  it("should not accept a boost twice", async () => {
+    //we need to approve funds to the boost contract first
+    token.approve(boost.address, 30, { from: sender });
+
+    await boost.boost(2323, receiver, 30, { from: sender });
+    assert.equal(await token.balanceOf(boost.address), 30);
+
+    await boost.accept(2323, { from: receiver });
+
+    let err = false;
+    try {
+      await boost.accept(2323, { from: receiver });
+    } catch (e) {
+      err = true;
+    }
+
+    assert.equal(err, true);
+
+    let _boost = await storage.boosts(2323);
+    assert.equal(_boost[0], sender);
+    assert.equal(_boost[1], receiver);
+    assert.equal(_boost[2].toNumber(), 30);
+    assert.equal(_boost[3], true);
+
+    assert.equal(await token.balanceOf(boost.address), 0);
+    assert.equal(await token.balanceOf(sender), 70);
+    assert.equal(await token.balanceOf(receiver), 30);
+
+  });
+
   it("should reject a boost", async () => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 40, { from: sender });
@@ -184,6 +245,37 @@ contract('MindsPeerBoost', (accounts) => {
 
     assert.equal(await token.balanceOf(boost.address), 40);
     assert.equal(await token.balanceOf(sender), 60);
+    assert.equal(await token.balanceOf(receiver), 0);
+
+  });
+
+  it("should not reject a boost twice", async () => {
+    //we need to approve funds to the boost contract first
+    token.approve(boost.address, 40, { from: sender });
+
+    await boost.boost(2423, receiver, 40, { from: sender });
+    assert.equal(await token.balanceOf(boost.address), 40);
+
+    await boost.reject(2423, { from: receiver });
+
+    let err = false;
+
+    try {
+      await boost.reject(2423, { from: receiver });
+    } catch (e) {
+      err = true;
+    }
+
+    assert.equal(err, true);
+
+    let _boost = await storage.boosts(2423);
+    assert.equal(_boost[0], sender);
+    assert.equal(_boost[1], receiver);
+    assert.equal(_boost[2].toNumber(), 40);
+    assert.equal(_boost[3], true);
+
+    assert.equal(await token.balanceOf(boost.address), 0);
+    assert.equal(await token.balanceOf(sender), 100);
     assert.equal(await token.balanceOf(receiver), 0);
 
   });

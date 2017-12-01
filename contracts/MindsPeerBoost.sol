@@ -57,6 +57,8 @@ contract MindsPeerBoost {
 
   function receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData) public returns (bool) {
 
+    require(msg.sender == address(token));
+
     uint256 _guid = 0;
     address _receiver = 0x0;
     assembly {
@@ -66,10 +68,16 @@ contract MindsPeerBoost {
       _receiver := mload(add(_extraData, 0x20))
     }
 
-    return boost(_guid, _from, _receiver, _value);
+    require(_receiver != 0x0);
+
+    return boostFrom(_from, _guid, _receiver, _value);
   }
 
-  function boost(uint256 guid, address sender, address receiver, uint amount) public returns (bool) {
+  function boost(uint256 guid, address receiver, uint amount) public returns (bool) {
+    return boostFrom(msg.sender, guid, receiver, amount);
+  }
+
+  function boostFrom(address sender, uint256 guid, address receiver, uint amount) public returns (bool) {
 
     PeerBoost memory _boost;
 
@@ -79,9 +87,6 @@ contract MindsPeerBoost {
     //must not exists
     require(_boost.sender == 0);
     require(_boost.receiver == 0);
-
-    //msg.sender must match sender or this address
-    require(msg.sender == sender || msg.sender == address(token));
 
     //spend tokens and store here
     token.transferFrom(sender, address(this), amount);

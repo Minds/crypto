@@ -79,6 +79,9 @@ contract MindsPeerBoost {
 
   function boostFrom(address sender, uint256 guid, address receiver, uint amount) public returns (bool) {
 
+    //make sure our boost is for over 0
+    require(amount >= 0);
+
     PeerBoost memory _boost;
 
     //get the boost

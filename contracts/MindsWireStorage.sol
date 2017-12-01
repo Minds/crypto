@@ -13,8 +13,6 @@ contract MindsWireStorage is Ownable {
   // Mapping of wires by receiver
   mapping(address => mapping(address => Wire[])) public wires;
 
-  // Owners
-
   // Allowed contracts
   mapping(address => bool) public contracts;
 

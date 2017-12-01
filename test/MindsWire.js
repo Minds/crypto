@@ -22,6 +22,9 @@ contract('MindsWire', (accounts) => {
     receiver = accounts[2];
     //allocate some tokens to our sender
     token.mint(sender, 100);
+
+    //set the storage to allow for wire contract to store
+    storage.modifyContracts(wire.address, true);
   });
 
   it("should send wire to a receiver using legacy approve", async () => {

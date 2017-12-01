@@ -30,6 +30,12 @@ contract('MindsWire', (accounts) => {
     assert.equal(await token.balanceOf(receiver), 10);
   });
 
+  it("should send wire to a receiver using a single tx", async () => {
+    token.approveAndCall(wire.address, receiver, 10, { from: sender });
+
+    assert.equal(await token.balanceOf(receiver), 10);
+  });
+
   it("should send not allow us to send more funds than approved", async () => {
     token.approve(wire.address, 10, { from: sender });
 

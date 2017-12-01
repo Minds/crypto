@@ -44,6 +44,13 @@ contract MindsWire {
     return true;
   }
 
+  function receiveApproval(address _from, address _to, uint256 _amount, address _tokenContract) {
+    MindsToken t = MindsToken(_tokenContract);
+    t.transferFrom(_from, _to, _amount);
+    s.createWire(_from, _to, _amount);
+    WireSent(_from, _to, _amount);
+  }
+
   function hasSent(address receiver, uint amount, uint timestamp) public constant returns (bool) {
     uint total;
 

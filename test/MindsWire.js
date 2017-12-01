@@ -24,12 +24,27 @@ contract('MindsWire', (accounts) => {
     token.mint(sender, 100);
   });
 
-  it("should send wire to a receiver", async () => {
+  it("should send wire to a receiver using legacy approve", async () => {
     //we need to approve funds to the wire contract first
     token.approve(wire.address, 10, { from: sender });
 
     await wire.wire(receiver, 10, { from: sender });
     assert.equal(await token.balanceOf(receiver), 10);
+  });
+
+  it("should send not allow us to send more funds than approved using legacy approve", async () => {
+    token.approve(wire.address, 10, { from: sender });
+
+    let err = false;
+
+    try {
+      await wire.wire(receiver, 20, { from: sender });
+    } catch (e) {
+      err = true;
+    }
+
+    assert.equal(err, true);
+    assert.equal(await token.balanceOf(receiver), 0);
   });
 
   it("should send wire to a receiver using approveAndCall", async () => {
@@ -45,24 +60,14 @@ contract('MindsWire', (accounts) => {
     assert.equal(await token.balanceOf(receiver), 10);
   });
 
-  it("should send not allow us to send more funds than approved", async () => {
-    token.approve(wire.address, 10, { from: sender });
-
-    let err = false;
-
-    try {
-      await wire.wire(receiver, 20, { from: sender });
-    } catch (e) {
-      err = true;
-    }
-
-    assert.equal(err, true);
-    assert.equal(await token.balanceOf(receiver), 0);
-  });
-
   it("should confirm that a wire was sent within the last month", async () => {
-    token.approve(wire.address, 10, { from: sender });
-    await wire.wire(receiver, 10, { from: sender });
+    const bytes = [
+      abi.rawEncode(['uint256'], [0x80]).toString('hex'),
+      abi.rawEncode(['uint256'], [0x40]).toString('hex'),
+      padding.left(receiver.slice(2), 64), //receiver address
+    ].join('');
+
+    token.approveAndCall(wire.address, 10, '0x' + bytes, { from: sender });
 
     let ts = web3.eth.getBlock('latest').timestamp -  (86400 * 30); //30 days ago
     let has = await wire.hasSent(receiver, 10, ts, { from: sender });
@@ -76,19 +81,29 @@ contract('MindsWire', (accounts) => {
   });
 
   it("should deny that a wire was sent out of period", async () => {
-    token.approve(wire.address, 10, { from: sender });
-    await wire.wire(receiver, 10, { from: sender });
-    
+    const bytes = [
+      abi.rawEncode(['uint256'], [0x80]).toString('hex'),
+      abi.rawEncode(['uint256'], [0x40]).toString('hex'),
+      padding.left(receiver.slice(2), 64), //receiver address
+    ].join('');
+
+    token.approveAndCall(wire.address, 10, '0x' + bytes, { from: sender }); 
+  
     let ts = web3.eth.getBlock('latest').timestamp +  (86400 * 30); //30 days in the future
     let has = await wire.hasSent(receiver, 10, ts, { from: sender });
     assert.equal(has, false);
   });
 
   it("should confirm that a multiple wires were sent within the last month", async () => {
-    token.approve(wire.address, 30, { from: sender });
-    await wire.wire(receiver, 10, { from: sender });
-    await wire.wire(receiver, 10, { from: sender });
-    await wire.wire(receiver, 10, { from: sender });
+    const bytes = [
+      abi.rawEncode(['uint256'], [0x80]).toString('hex'),
+      abi.rawEncode(['uint256'], [0x40]).toString('hex'),
+      padding.left(receiver.slice(2), 64), //receiver address
+    ].join('');
+
+    token.approveAndCall(wire.address, 10, '0x' + bytes, { from: sender });
+    await token.approveAndCall(wire.address, 10, '0x' + bytes, { from: sender });
+    await token.approveAndCall(wire.address, 10, '0x' + bytes, { from: sender });
 
     let ts = web3.eth.getBlock('latest').timestamp -  (86400 * 30); //30 days ago
     let has = await wire.hasSent(receiver, 30, ts, { from: sender });

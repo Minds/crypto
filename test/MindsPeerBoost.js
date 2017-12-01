@@ -3,6 +3,12 @@ var MindsPeerBoostStorage = artifacts.require("./MindsPeerBoostStorage.sol");
 var MindsToken = artifacts.require("./MindsToken.sol");
 
 var increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
+var padding = require('./helpers/padding');
+const abi = require('ethereumjs-abi');
+
+//const encodeParameter = web3.eth.abi.encodeParameter.bind(web3.eth.abi);
+//const encodeParameters = web3.eth.abi.encodeParameters.bind(web3.eth.abi);
+//const encodeString = string => encodeParameter('string', string).slice(66);
 
 contract('MindsPeerBoost', (accounts) => {
   let boost,
@@ -24,11 +30,36 @@ contract('MindsPeerBoost', (accounts) => {
     token.mint(sender, 100);
   });
 
+  it("should send boost to a receiver via approveAndCall", async () => {
+    //we need to approve funds to the boost contract first
+
+    const address = abi.rawEncode([ "address" ],[ receiver ]).toString('hex');
+
+    const bytes = [
+      abi.rawEncode(['uint256'], [0x80]).toString('hex'),
+      abi.rawEncode(['uint256'], [0x40]).toString('hex'),
+      padding.left(receiver.slice(2), 64), //receiver address
+      abi.rawEncode(['uint256'], [ 123 ]).toString('hex') //guid
+    ].join('');
+
+    await token.approveAndCall(boost.address, 10, '0x' + bytes, { from: sender });
+
+    //await boost.boost(123, sender, receiver, 10, { from: sender });
+    assert.equal(await token.balanceOf(boost.address), 10);
+
+    let _boost = await storage.boosts(123);
+    assert.equal(_boost[0], sender);
+    assert.equal(_boost[1], receiver);
+    assert.equal(_boost[2].toNumber(), 10);
+    assert.equal(_boost[3], false);
+
+  });
+
   it("should send boost to a receiver", async () => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 10, { from: sender });
 
-    await boost.boost(123, receiver, 10, { from: sender });
+    await boost.boost(123, sender, receiver, 10, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 10);
 
     let _boost = await storage.boosts(123);
@@ -43,7 +74,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 10, { from: sender });
 
-    await boost.boost(2123, receiver, 1, { from: sender });
+    await boost.boost(2123, sender, receiver, 1, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 1);
 
     let _boost = await storage.boosts(2123);
@@ -55,7 +86,7 @@ contract('MindsPeerBoost', (accounts) => {
     let err = false;
 
     try {
-      await boost.boost(2123, receiver, 5, { from: sender });
+      await boost.boost(2123, sender, receiver, 5, { from: sender });
     } catch (e) {
       err = true;
     }
@@ -68,7 +99,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 20, { from: sender });
 
-    await boost.boost(223, receiver, 20, { from: sender });
+    await boost.boost(223, sender, receiver, 20, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 20);
 
     await boost.revoke(223, { from: sender });
@@ -88,7 +119,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 20, { from: sender });
 
-    await boost.boost(1223, receiver, 20, { from: sender });
+    await boost.boost(1223, sender, receiver, 20, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 20);
 
     let err = false;
@@ -117,7 +148,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 20, { from: sender });
 
-    await boost.boost(2223, receiver, 20, { from: sender });
+    await boost.boost(2223, sender, receiver, 20, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 20);
 
     await boost.revoke(2223, { from: sender });
@@ -148,7 +179,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 30, { from: sender });
 
-    await boost.boost(323, receiver, 30, { from: sender });
+    await boost.boost(323, sender, receiver, 30, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 30);
 
     await boost.accept(323, { from: receiver });
@@ -169,7 +200,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 30, { from: sender });
 
-    await boost.boost(1323, receiver, 30, { from: sender });
+    await boost.boost(1323, sender, receiver, 30, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 30);
 
     let err = false;
@@ -198,7 +229,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 30, { from: sender });
 
-    await boost.boost(2323, receiver, 30, { from: sender });
+    await boost.boost(2323, sender, receiver, 30, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 30);
 
     await boost.accept(2323, { from: receiver });
@@ -228,7 +259,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 40, { from: sender });
 
-    await boost.boost(423, receiver, 40, { from: sender });
+    await boost.boost(423, sender, receiver, 40, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 40);
 
     await boost.reject(423, { from: receiver });
@@ -249,7 +280,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 40, { from: sender });
 
-    await boost.boost(1423, receiver, 40, { from: sender });
+    await boost.boost(1423, sender, receiver, 40, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 40);
 
     let err = false;
@@ -278,7 +309,7 @@ contract('MindsPeerBoost', (accounts) => {
     //we need to approve funds to the boost contract first
     token.approve(boost.address, 40, { from: sender });
 
-    await boost.boost(2423, receiver, 40, { from: sender });
+    await boost.boost(2423, sender, receiver, 40, { from: sender });
     assert.equal(await token.balanceOf(boost.address), 40);
 
     await boost.reject(2423, { from: receiver });

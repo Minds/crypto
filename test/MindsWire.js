@@ -3,6 +3,8 @@ var MindsWireStorage = artifacts.require("./MindsWireStorage.sol");
 var MindsToken = artifacts.require("./MindsToken.sol");
 
 var increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
+var padding = require('./helpers/padding');
+const abi = require('ethereumjs-abi');
 
 contract('MindsWire', (accounts) => {
   let wire,
@@ -30,8 +32,15 @@ contract('MindsWire', (accounts) => {
     assert.equal(await token.balanceOf(receiver), 10);
   });
 
-  it("should send wire to a receiver using a single tx", async () => {
-    token.approveAndCall(wire.address, receiver, 10, { from: sender });
+  it("should send wire to a receiver using approveAndCall", async () => {
+
+    const bytes = [
+      abi.rawEncode(['uint256'], [0x80]).toString('hex'),
+      abi.rawEncode(['uint256'], [0x40]).toString('hex'),
+      padding.left(receiver.slice(2), 64), //receiver address
+    ].join('');
+
+    token.approveAndCall(wire.address, 10, '0x' + bytes, { from: sender });
 
     assert.equal(await token.balanceOf(receiver), 10);
   });

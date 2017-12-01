@@ -37,18 +37,34 @@ contract MindsWire {
     return false;
   }
 
-  function wire(address receiver, uint amount) public returns (bool) {
-    token.transferFrom(msg.sender, receiver, amount);
-    s.createWire(msg.sender, receiver, amount);
-    WireSent(msg.sender, receiver, amount);
-    return true;
+  function receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData) public returns (bool) {
+
+    require(msg.sender == address(token));
+
+    address _receiver = 0x0;
+    assembly {
+      // Load the raw bytes into the respective variables to avoid any sort of costly
+      // conversion.
+      _receiver := mload(add(_extraData, 0x20))
+    }
+
+    require(_receiver != 0x0);
+
+    return wireFrom(_from, _receiver, _value);
   }
 
-  function receiveApproval(address _from, address _to, uint256 _amount, address _tokenContract) {
-    MindsToken t = MindsToken(_tokenContract);
-    t.transferFrom(_from, _to, _amount);
-    s.createWire(_from, _to, _amount);
-    WireSent(_from, _to, _amount);
+  function wire(address receiver, uint amount) public returns (bool) {
+    return wireFrom(msg.sender, receiver, amount);
+  }
+
+  function wireFrom(address sender, address receiver, uint amount) public returns (bool) {
+
+    require(amount >= 0);
+
+    token.transferFrom(sender, receiver, amount);
+    s.createWire(sender, receiver, amount);
+    WireSent(msg.sender, receiver, amount);
+    return true;
   }
 
   function hasSent(address receiver, uint amount, uint timestamp) public constant returns (bool) {

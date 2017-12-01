@@ -63,7 +63,7 @@ contract MindsWire {
 
     token.transferFrom(sender, receiver, amount);
     s.insert(sender, receiver, amount);
-    WireSent(msg.sender, receiver, amount);
+    WireSent(sender, receiver, amount);
     return true;
   }
 

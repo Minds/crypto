@@ -1,12 +1,12 @@
-var MindsPeerBoost = artifacts.require("./MindsPeerBoost.sol");
-var MindsPeerBoostStorage = artifacts.require("./MindsPeerBoostStorage.sol");
+var MindsBoost = artifacts.require("./MindsBoost.sol");
+var MindsBoostStorage = artifacts.require("./MindsBoostStorage.sol");
 var MindsToken = artifacts.require("./MindsToken.sol");
 
 var increaseTimeTo = require('./helpers/increaseTime').increaseTimeTo;
 var padding = require('./helpers/padding');
 const abi = require('ethereumjs-abi');
 
-contract('MindsPeerBoost', (accounts) => {
+contract('MindsBoost', (accounts) => {
   let boost,
     storage,
     token,
@@ -15,9 +15,9 @@ contract('MindsPeerBoost', (accounts) => {
     other;
 
   beforeEach(async () => {
-    storage = await MindsPeerBoostStorage.new();
+    storage = await MindsBoostStorage.new();
     token = await MindsToken.new();
-    boost = await MindsPeerBoost.new(storage.address, token.address);
+    boost = await MindsBoost.new(storage.address, token.address);
 
     sender = accounts[1];
     receiver = accounts[2];

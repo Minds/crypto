@@ -1,11 +1,11 @@
 pragma solidity ^0.4.13;
 
 import './MindsToken.sol';
-import './MindsPeerBoostStorage.sol';
+import './MindsBoostStorage.sol';
 
-contract MindsPeerBoost {
+contract MindsBoost {
 
-  struct PeerBoost {
+  struct Boost {
     address sender;
     address receiver;
     uint value;
@@ -13,34 +13,34 @@ contract MindsPeerBoost {
   }
 
   MindsToken public token;
-  MindsPeerBoostStorage public s;
+  MindsBoostStorage public s;
 
   /**
    * event for boost being created
    * @param guid - the guid of the boost
    */
-  event PeerBoostSent(uint256 guid);
+  event BoostSent(uint256 guid);
 
   /**
    * event for boost being accepted
    * @param guid - the guid of the boost
    */
-  event PeerBoostAccepted(uint256 guid);
+  event BoostAccepted(uint256 guid);
 
   /**
    * event for boost being rejected
    * @param guid - the guid of the boost
    */
-  event PeerBoostRejected(uint256 guid);
+  event BoostRejected(uint256 guid);
 
   /**
    * event for boost being revoked
    * @param guid - the guid of the boost
    */
-  event PeerBoostRevoked(uint256 guid);
+  event BoostRevoked(uint256 guid);
 
-  function MindsPeerBoost(address _storage, address _token) {
-    s = MindsPeerBoostStorage(_storage);
+  function MindsBoost(address _storage, address _token) {
+    s = MindsBoostStorage(_storage);
     token = MindsToken(_token);
   }
 
@@ -82,7 +82,7 @@ contract MindsPeerBoost {
     //make sure our boost is for over 0
     require(amount >= 0);
 
-    PeerBoost memory _boost;
+    Boost memory _boost;
 
     //get the boost
     (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
@@ -101,13 +101,13 @@ contract MindsPeerBoost {
     s.upsert(guid, sender, receiver, amount, false);
 
     //send event
-    PeerBoostSent(guid);
+    BoostSent(guid);
     return true;
   }
 
   function accept(uint256 guid) {
 
-    PeerBoost memory _boost;
+    Boost memory _boost;
 
     //get the boost
     (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
@@ -125,11 +125,11 @@ contract MindsPeerBoost {
     token.transferFrom(address(this), _boost.receiver, _boost.value);
 
     //send event
-    PeerBoostAccepted(guid);
+    BoostAccepted(guid);
   }
 
   function reject(uint256 guid) {
-    PeerBoost memory _boost;
+    Boost memory _boost;
 
     //get the boost
     (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
@@ -147,11 +147,11 @@ contract MindsPeerBoost {
     token.transferFrom(address(this), _boost.sender, _boost.value);
 
     //send event
-    PeerBoostRejected(guid);
+    BoostRejected(guid);
   }
 
   function revoke(uint256 guid) {
-    PeerBoost memory _boost;
+    Boost memory _boost;
 
     //get the boost
     (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
@@ -169,7 +169,7 @@ contract MindsPeerBoost {
     token.transferFrom(address(this), _boost.sender, _boost.value);
 
     //send event
-    PeerBoostRevoked(guid);
+    BoostRevoked(guid);
   }
 
 }

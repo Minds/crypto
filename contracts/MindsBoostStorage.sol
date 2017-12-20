@@ -3,9 +3,9 @@ pragma solidity ^0.4.13;
 import './MindsToken.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract MindsPeerBoostStorage is Ownable {
+contract MindsBoostStorage is Ownable {
 
-  struct PeerBoost {
+  struct Boost {
     address sender;
     address receiver;
     uint value;
@@ -13,7 +13,7 @@ contract MindsPeerBoostStorage is Ownable {
   }
 
   // Mapping of boosts by guid
-  mapping(uint256 => PeerBoost) public boosts;
+  mapping(uint256 => Boost) public boosts;
 
   // Allowed contracts
   mapping(address => bool) public contracts;
@@ -32,7 +32,7 @@ contract MindsPeerBoostStorage is Ownable {
     //only allow if transaction from an approved contract
     require(contracts[msg.sender]);
 
-    PeerBoost memory _boost = PeerBoost(
+    Boost memory _boost = Boost(
       sender,
       receiver,
       value,

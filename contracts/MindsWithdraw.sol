@@ -62,16 +62,11 @@ contract MindsWithdraw {
 
   function complete(address requester, uint256 user_guid, uint256 gas, uint256 amount) public returns (bool) {
     
-    require(requests[requester].user_guid >= user_guid);
-    require(requests[requester].user_guid <= user_guid);
+    require(requests[requester].user_guid == user_guid);
+    require(requests[requester].gas == gas);
+    require(requests[requester].amount == amount);
 
-    require(requests[requester].gas >= gas);
-    require(requests[requester].gas <= gas);
-
-    require(requests[requester].amount >= amount);
-    require(requests[requester].amount <= amount);
-
-    //token.transferFrom(msg.sender, requester, amount);
+    token.transferFrom(msg.sender, requester, amount);
 
     WithdrawalComplete(requester, user_guid, amount);
     

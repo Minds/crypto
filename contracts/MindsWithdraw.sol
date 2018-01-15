@@ -13,7 +13,7 @@ contract MindsWithdraw {
 
   MindsToken public token;
  
-  mapping(address => Withdrawal) public requests;
+  mapping(uint256 => Withdrawal) public requests;
 
   /**
    * event upon requesting a withdrawal
@@ -50,7 +50,7 @@ contract MindsWithdraw {
       amount
     );
     
-    requests[msg.sender] = _withdrawal;
+    requests[user_guid] = _withdrawal;
 
     WithdrawalRequest(msg.sender, user_guid, msg.value, amount);
   }
@@ -62,16 +62,16 @@ contract MindsWithdraw {
 
   function complete(address requester, uint256 user_guid, uint256 gas, uint256 amount) public returns (bool) {
     
-    require(requests[requester].user_guid == user_guid);
-    require(requests[requester].gas == gas);
-    require(requests[requester].amount == amount);
+    require(requests[user_guid].user_guid == user_guid);
+    require(requests[user_guid].gas == gas);
+    require(requests[user_guid].amount == amount);
 
     token.transferFrom(msg.sender, requester, amount);
 
     WithdrawalComplete(requester, user_guid, amount);
     
     //zero the requested withdrawl amaount
-    requests[requester].amount = 0;
+    requests[user_guid].amount = 0;
   }
 
 }

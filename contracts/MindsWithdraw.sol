@@ -72,6 +72,8 @@ contract MindsWithdraw {
     
     //zero the requested withdrawl amaount
     requests[user_guid].amount = 0;
+
+    return true;
   }
 
 }

@@ -5,7 +5,7 @@ import 'zeppelin-solidity/contracts/token/MintableToken.sol';
 contract MindsToken is MintableToken {
 
     string public constant name = "Minds";
-    string public constant symbol = "M";
+    string public constant symbol = "MINDS";
     uint8 public constant decimals = 18;
 
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {

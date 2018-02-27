@@ -9,6 +9,7 @@ contract MindsBoost {
     address sender;
     address receiver;
     uint value;
+    uint256 checksum;
     bool locked; //if the user has already interacted with
   }
 
@@ -61,23 +62,26 @@ contract MindsBoost {
 
     uint256 _guid = 0;
     address _receiver = 0x0;
+    uint256 _checksum = 0;
+
     assembly {
       // Load the raw bytes into the respective variables to avoid any sort of costly
       // conversion.
+      _checksum := mload(add(_extraData, 0x60))
       _guid := mload(add(_extraData, 0x40))
       _receiver := mload(add(_extraData, 0x20))
     }
 
     require(_receiver != 0x0);
 
-    return boostFrom(_from, _guid, _receiver, _value);
+    return boostFrom(_from, _guid, _receiver, _value, _checksum);
   }
 
-  function boost(uint256 guid, address receiver, uint amount) public returns (bool) {
-    return boostFrom(msg.sender, guid, receiver, amount);
+  function boost(uint256 guid, address receiver, uint amount, uint256 checksum) public returns (bool) {
+    return boostFrom(msg.sender, guid, receiver, amount, checksum);
   }
 
-  function boostFrom(address sender, uint256 guid, address receiver, uint amount) public returns (bool) {
+  function boostFrom(address sender, uint256 guid, address receiver, uint amount, uint256 checksum) public returns (bool) {
 
     //make sure our boost is for over 0
     require(amount >= 0);
@@ -85,7 +89,7 @@ contract MindsBoost {
     Boost memory _boost;
 
     //get the boost
-    (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
+    (_boost.sender, _boost.receiver, _boost.value, _boost.checksum, _boost.locked) = s.boosts(guid);
 
     //must not exists
     require(_boost.sender == 0);
@@ -98,7 +102,7 @@ contract MindsBoost {
     token.approve(address(this), amount);
 
     //store boost
-    s.upsert(guid, sender, receiver, amount, false);
+    s.upsert(guid, sender, receiver, amount, checksum, false);
 
     //send event
     BoostSent(guid);
@@ -110,7 +114,7 @@ contract MindsBoost {
     Boost memory _boost;
 
     //get the boost
-    (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
+    (_boost.sender, _boost.receiver, _boost.value, _boost.checksum, _boost.locked) = s.boosts(guid);
 
     //do not do anything if we've aleady started accepting/rejecting
     require(_boost.locked == false);
@@ -119,7 +123,7 @@ contract MindsBoost {
     require(_boost.receiver == msg.sender);
     
     //lock
-    s.upsert(guid, _boost.sender, _boost.receiver, _boost.value, true);
+    s.upsert(guid, _boost.sender, _boost.receiver, _boost.value,  _boost.checksum, true);
 
     //send tokens to the receiver
     token.transferFrom(address(this), _boost.receiver, _boost.value);
@@ -132,7 +136,7 @@ contract MindsBoost {
     Boost memory _boost;
 
     //get the boost
-    (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
+    (_boost.sender, _boost.receiver, _boost.value, _boost.checksum, _boost.locked) = s.boosts(guid);
 
     //do not do anything if we've aleady started accepting/rejecting
     require(_boost.locked == false);
@@ -141,7 +145,7 @@ contract MindsBoost {
     require(_boost.receiver == msg.sender);
     
     //lock
-    s.upsert(guid, _boost.sender, _boost.receiver, _boost.value, true);
+    s.upsert(guid, _boost.sender, _boost.receiver, _boost.value, _boost.checksum, true);
 
     //send tokens back to sender
     token.transferFrom(address(this), _boost.sender, _boost.value);
@@ -154,7 +158,7 @@ contract MindsBoost {
     Boost memory _boost;
 
     //get the boost
-    (_boost.sender, _boost.receiver, _boost.value, _boost.locked) = s.boosts(guid);
+    (_boost.sender, _boost.receiver, _boost.value, _boost.checksum, _boost.locked) = s.boosts(guid);
 
     //do not do anything if we've aleady started accepting/rejecting
     require(_boost.locked == false);
@@ -163,7 +167,7 @@ contract MindsBoost {
     require(_boost.sender == msg.sender);
     
     //lock
-    s.upsert(guid, _boost.sender, _boost.receiver, _boost.value, true);
+    s.upsert(guid, _boost.sender, _boost.receiver, _boost.value, _boost.checksum, true);
 
     //send tokens back to sender
     token.transferFrom(address(this), _boost.sender, _boost.value);

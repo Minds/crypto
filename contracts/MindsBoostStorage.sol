@@ -9,6 +9,7 @@ contract MindsBoostStorage is Ownable {
     address sender;
     address receiver;
     uint value;
+    uint256 checksum;
     bool locked; //if the user has already interacted with
   }
 
@@ -27,7 +28,7 @@ contract MindsBoostStorage is Ownable {
    * @param locked If the boost is locked or not
    * @return bool
    */
-  function upsert(uint256 guid, address sender, address receiver, uint value, bool locked) public returns (bool) {
+  function upsert(uint256 guid, address sender, address receiver, uint value, uint256 checksum, bool locked) public returns (bool) {
 
     //only allow if transaction from an approved contract
     require(contracts[msg.sender]);
@@ -36,6 +37,7 @@ contract MindsBoostStorage is Ownable {
       sender,
       receiver,
       value,
+      checksum,
       locked
     );
 

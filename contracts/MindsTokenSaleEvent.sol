@@ -1,19 +1,16 @@
 pragma solidity ^0.4.13;
 
 import './MindsToken.sol';
+
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-
-contract MindsTokenSaleEvent {
+contract MindsTokenSaleEvent is Ownable {
 
   using SafeMath for uint256;
 
   // The token being sold
   MindsToken public token;
-
-  // start and end timestamps where investments are allowed (both inclusive)
-  uint256 public startTime;
-  uint256 public endTime;
 
   // address where funds are collected
   address public wallet;
@@ -24,6 +21,9 @@ contract MindsTokenSaleEvent {
   // amount of raised money in wei
   uint256 public weiRaised;
 
+  // pledge addresses
+  mapping(address => uint256) public pledges;
+
   /**
    * event for token purchase logging
    * @param purchaser who paid for the tokens
@@ -33,15 +33,26 @@ contract MindsTokenSaleEvent {
    */
   event TokenPurchase(address purchaser, address beneficiary, uint256 value, uint256 amount);
 
-  function MindsTokenSaleEvent(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, address _token) {
-    require(_startTime >= now);
-    require(_endTime >= _startTime);
+  /**
+   * Event for token pledges
+   * @param beneficiary Address who pledged for the tokens
+   * @param value Amount of ETH pledged
+   */
+  event TokenPledge(address beneficiary, uint256 value);
+
+  /**
+   * Event for token pledge deducting
+   * @param beneficiary Address who pledged for the tokens
+   * @param value Amount of ETH deducted
+   * @param balance Amount of remaining ETH available to spend
+   */
+  event TokenPledgeDeduct(address beneficiary, uint256 value, uint256 balance);
+
+  function MindsTokenSaleEvent(uint256 _rate, address _wallet, address _token) {
     require(_rate > 0);
     require(_wallet != address(0));
 
     token = MindsToken(_token);
-    startTime = _startTime;
-    endTime = _endTime;
     rate = _rate;
     wallet = _wallet;
   }
@@ -58,16 +69,21 @@ contract MindsTokenSaleEvent {
 
     uint256 weiAmount = msg.value;
 
-    // calculate token amount to be created
-    uint256 tokens = weiAmount.mul(rate);
+    // deduct from pledge and emit event
+    require(isValuePledged(beneficiary, weiAmount));
+    deductFromPledge(beneficiary, weiAmount);
 
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
-    //send our tokens
+    // calculate token amount to be created
+    uint256 tokens = weiAmount.mul(rate);
+
+    // send our tokens
     token.transferFrom(wallet, beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
+    // send funds
     forwardFunds();
   }
 
@@ -78,15 +94,31 @@ contract MindsTokenSaleEvent {
   }
 
   // @return true if the transaction can buy tokens
-  function validPurchase() internal constant returns (bool) {
-    bool withinPeriod = block.timestamp >= startTime && block.timestamp <= endTime;
-    bool nonZeroPurchase = msg.value != 0;
-    return withinPeriod && nonZeroPurchase;
+  function validPurchase() internal returns (bool) {
+    bool nonZeroPurchase = msg.value > 0;
+    return nonZeroPurchase;
   }
 
-  // @return true if crowdsale event has ended
-  function hasEnded() public constant returns (bool) {
-    return block.timestamp > endTime;
+  // Pledge
+
+  function pledge(address beneficiary, uint256 value) external onlyOwner {
+    pledges[beneficiary] = value;
+
+    // emit event
+    TokenPledge(beneficiary, value);
   }
 
+  function hasPledged(address beneficiary) internal returns (bool) {
+    return pledges[beneficiary] >= 0;
+  }
+
+  function isValuePledged(address beneficiary, uint256 value) internal returns (bool) {
+    bool isEnough = value <= pledges[beneficiary];
+    return hasPledged(beneficiary) && isEnough;
+  }
+
+  function deductFromPledge(address beneficiary, uint256 value) internal {
+    pledges[beneficiary] = pledges[beneficiary].sub(value);
+    TokenPledgeDeduct(beneficiary, value, pledges[beneficiary]);
+  }
 }

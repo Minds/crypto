@@ -8,6 +8,6 @@ module.exports = (deployer) => {
   const wallet = '0xbcd663a8bd5b8207685cadce3203979aeb7fb725'
   //const wallet = '0x5aeda56215b167893e80b4fe645ba6d5bab767de'
 
-  deployer.deploy(MindsTokenSaleEvent, startTime, endTime, rate, wallet, MindsToken.address);
+  deployer.deploy(MindsTokenSaleEvent, rate, wallet, '0xf5f7ad7d2c37cae59207af43d0beb4b361fb9ec8');
 
 };

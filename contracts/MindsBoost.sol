@@ -81,7 +81,7 @@ contract MindsBoost {
     return boostFrom(msg.sender, guid, receiver, amount, checksum);
   }
 
-  function boostFrom(address sender, uint256 guid, address receiver, uint amount, uint256 checksum) public returns (bool) {
+  function boostFrom(address sender, uint256 guid, address receiver, uint amount, uint256 checksum) private returns (bool) {
 
     //make sure our boost is for over 0
     require(amount >= 0);

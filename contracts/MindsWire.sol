@@ -2,8 +2,9 @@ pragma solidity ^0.4.13;
 
 import './MindsToken.sol';
 import './MindsWireStorage.sol';
+import './Whitelist.sol';
 
-contract MindsWire {
+contract MindsWire is Whitelist {
 
   struct Wire {
     uint timestamp;

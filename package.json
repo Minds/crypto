@@ -2,6 +2,6 @@
   "name": "minds-token",
   "dependencies": {
     "ethereumjs-abi": "^0.6.4",
-    "zeppelin-solidity": "^1.3.0"
+    "zeppelin-solidity": "1.11.0"
   }
 }

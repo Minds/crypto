@@ -1,11 +1,11 @@
-pragma solidity ^0.4.13;
+pragma solidity ^0.4.24;
 
 import './MindsToken.sol';
 
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import './Whitelist.sol'; //until new zeppelin version
 
-contract MindsTokenSaleEvent is Ownable {
+contract MindsTokenSaleEvent is Whitelist {
 
   using SafeMath for uint256;
 
@@ -21,32 +21,29 @@ contract MindsTokenSaleEvent is Ownable {
   // amount of raised money in wei
   uint256 public weiRaised;
 
-  // pledge addresses
-  mapping(address => uint256) public pledges;
+  // outstanding token purchases addresses
+  mapping(address => uint256) public outstanding;
 
   /**
    * event for token purchase logging
    * @param purchaser who paid for the tokens
-   * @param beneficiary who got the tokens
-   * @param value weis paid for purchase
-   * @param amount amount of tokens purchased
+   * @param tokens amount of tokens purchased
    */
-  event TokenPurchase(address purchaser, address beneficiary, uint256 value, uint256 amount);
+  event TokenPurchase(address purchaser, uint256 tokens);
 
   /**
-   * Event for token pledges
-   * @param beneficiary Address who pledged for the tokens
-   * @param value Amount of ETH pledged
+   * Event for token issuance
+   * @param purchaser Address who purchased the tokens
+   * @param tokens amount of tokens purchased
    */
-  event TokenPledge(address beneficiary, uint256 value);
+  event TokenIssue(address purchaser, uint256 tokens);
 
   /**
-   * Event for token pledge deducting
-   * @param beneficiary Address who pledged for the tokens
-   * @param value Amount of ETH deducted
-   * @param balance Amount of remaining ETH available to spend
+   * Event for declining token
+   * @param purchaser Address who purchased the tokens
+   * @param tokens amount of tokens purchased
    */
-  event TokenPledgeDeduct(address beneficiary, uint256 value, uint256 balance);
+  event TokenDecline(address purchaser, uint256 tokens);
 
   function MindsTokenSaleEvent(uint256 _rate, address _wallet, address _token) {
     require(_rate > 0);
@@ -69,22 +66,20 @@ contract MindsTokenSaleEvent is Ownable {
 
     uint256 weiAmount = msg.value;
 
-    // deduct from pledge and emit event
-    require(isValuePledged(beneficiary, weiAmount));
-    deductFromPledge(beneficiary, weiAmount);
-
     // update state
     weiRaised = weiRaised.add(weiAmount);
 
     // calculate token amount to be created
     uint256 tokens = weiAmount.mul(rate);
 
-    // send our tokens
-    token.transferFrom(wallet, beneficiary, tokens);
-    TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
+    // increase outstanding purchases and emit event
+    increaseOutstandingPurchases(beneficiary, tokens);
 
     // send funds
     forwardFunds();
+
+    // send event
+    emit TokenPurchase(beneficiary, tokens);
   }
 
   // send ether to the fund collection wallet
@@ -99,26 +94,53 @@ contract MindsTokenSaleEvent is Ownable {
     return nonZeroPurchase;
   }
 
-  // Pledge
+  // Issue tokens
 
-  function pledge(address beneficiary, uint256 value) external onlyOwner {
-    pledges[beneficiary] = value;
+  function issue(address beneficiary, uint256 tokens) external 
+    onlyIfWhitelisted(msg.sender) {
+    
+    // check that there is outstanding tokens to issue
+    require(areTokensOutstanding(beneficiary, tokens));
 
-    // emit event
-    TokenPledge(beneficiary, value);
+    decreaseOutstandingPurchases(beneficiary, tokens);
+
+    // send our tokens
+    token.transferFrom(wallet, beneficiary, tokens);
+    emit TokenIssue(beneficiary, tokens);
   }
 
-  function hasPledged(address beneficiary) internal returns (bool) {
-    return pledges[beneficiary] >= 0;
+  // Decline the tokens
+
+  function decline(address beneficiary, uint256 tokens) external 
+    onlyIfWhitelisted(msg.sender) {
+    decreaseOutstandingPurchases(beneficiary, tokens);
+
+    //refund the ETH value
+    uint256 weiAmount = tokens.div(rate);
+    beneficiary.send(weiAmount); 
+   
+    emit TokenDecline(beneficiary, tokens);
   }
 
-  function isValuePledged(address beneficiary, uint256 value) internal returns (bool) {
-    bool isEnough = value <= pledges[beneficiary];
-    return hasPledged(beneficiary) && isEnough;
+  // Check that enough tokens have been purchased
+
+  function areTokensOutstanding(address beneficiary, uint256 tokens) internal returns (bool) {
+    bool hasOutstanding = outstanding[beneficiary] > 0;
+    bool isValid = tokens > 0;
+    bool isEnough = tokens <= outstanding[beneficiary];
+    return isValid && isEnough && hasOutstanding;
   }
 
-  function deductFromPledge(address beneficiary, uint256 value) internal {
-    pledges[beneficiary] = pledges[beneficiary].sub(value);
-    TokenPledgeDeduct(beneficiary, value, pledges[beneficiary]);
+  // Increase the number of purchased tokens awaiting issuance
+
+  function increaseOutstandingPurchases(address beneficiary, uint256 tokens) internal {
+    outstanding[beneficiary] = outstanding[beneficiary].add(tokens);
   }
+
+  // Decrease the number of purchased tokens awaiting issuance
+
+  function decreaseOutstandingPurchases(address beneficiary, uint256 tokens) internal {
+    outstanding[beneficiary] = outstanding[beneficiary].sub(tokens);
+  }
+
 }

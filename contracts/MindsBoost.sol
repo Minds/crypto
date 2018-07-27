@@ -84,7 +84,7 @@ contract MindsBoost {
   function boostFrom(address sender, uint256 guid, address receiver, uint amount, uint256 checksum) private returns (bool) {
 
     //make sure our boost is for over 0
-    require(amount >= 0);
+    require(amount > 0);
 
     Boost memory _boost;
 

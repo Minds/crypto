@@ -60,7 +60,7 @@ contract MindsWire is Whitelist {
 
   function wireFrom(address sender, address receiver, uint amount) public returns (bool) {
 
-    require(amount >= 0);
+    require(amount > 0);
 
     token.transferFrom(sender, receiver, amount);
     s.insert(sender, receiver, amount);

@@ -55,7 +55,7 @@ contract MindsTokenSaleEvent is Whitelist {
   }
 
   // fallback function can be used to buy tokens
-  function () payable {
+  function () external payable {
     buyTokens(msg.sender);
   }
 
@@ -117,7 +117,7 @@ contract MindsTokenSaleEvent is Whitelist {
 
     //refund the ETH value
     uint256 weiAmount = tokens.div(rate);
-    beneficiary.send(weiAmount); 
+    token.transferFrom(wallet, beneficiary, weiAmount); 
    
     emit TokenDecline(beneficiary, tokens);
   }

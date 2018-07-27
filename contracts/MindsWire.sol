@@ -54,11 +54,17 @@ contract MindsWire is Whitelist {
     return wireFrom(_from, _receiver, _value);
   }
 
+  /**
+   * Users call this function to send a wire
+   */
   function wire(address receiver, uint amount) public returns (bool) {
     return wireFrom(msg.sender, receiver, amount);
   }
 
-  function wireFrom(address sender, address receiver, uint amount) public returns (bool) {
+  /**
+   * Internal function to send the wire
+   */
+  function wireFrom(address sender, address receiver, uint amount) internal returns (bool) {
 
     require(amount > 0);
 
@@ -66,6 +72,14 @@ contract MindsWire is Whitelist {
     s.insert(sender, receiver, amount);
     emit WireSent(sender, receiver, amount);
     return true;
+  }
+
+  /**
+   * Used by servers that act as delegates. Must be whitelisted
+   */
+  function wireFromDelegate(address sender, address receiver, uint amount) public 
+    onlyIfWhitelisted(msg.sender) returns (bool) {
+      return wireFrom(sender, receiver, amount);
   }
 
   function hasSent(address receiver, uint amount, uint timestamp) public view returns (bool) {

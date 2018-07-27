@@ -50,6 +50,31 @@ contract('MindsWire', (accounts) => {
     assert.equal(await token.balanceOf(receiver), 0);
   });
 
+  it("should allow whitelisted address to able to create a wire", async () => {
+    await token.approve(wire.address, 10, { from: sender });
+
+    await wire.addAddressToWhitelist(accounts[5]);
+
+    await wire.wireFromDelegate(sender, receiver, 5, { from: accounts[5] });
+
+    assert.equal(await token.balanceOf(receiver), 5);
+  });
+
+  it("should not allow non-whitelisted address create a wire", async () => {
+    await token.approve(wire.address, 10, { from: sender });
+
+    let errored = false;
+
+    try {
+      await wire.wireFromDelegate(sender, receiver, 5, { from: accounts[6] });
+    } catch (err) {
+      errored = true;
+    }
+
+    assert.equal(errored, true);
+    assert.equal(await token.balanceOf(receiver), 0);
+  });
+
   it("should send wire to a receiver using approveAndCall", async () => {
 
     const bytes = [

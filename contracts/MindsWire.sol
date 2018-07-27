@@ -22,7 +22,7 @@ contract MindsWire is Whitelist {
    */
   event WireSent(address sender, address receiver, uint256 amount);
 
-  function MindsWire(address _storage, address _token) {
+  constructor(address _storage, address _token) public {
     s = MindsWireStorage(_storage);
     token = MindsToken(_token);
   }

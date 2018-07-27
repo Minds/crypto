@@ -45,7 +45,7 @@ contract MindsTokenSaleEvent is Whitelist {
    */
   event TokenDecline(address purchaser, uint256 tokens);
 
-  function MindsTokenSaleEvent(uint256 _rate, address _wallet, address _token) {
+  constructor(uint256 _rate, address _wallet, address _token) public {
     require(_rate > 0);
     require(_wallet != address(0));
 

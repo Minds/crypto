@@ -32,7 +32,7 @@ contract MindsWithdraw {
    */
   event WithdrawalComplete(address requester, uint256 user_guid, uint256 amount);
 
-  function MindsWithdraw(address _token) {
+  constructor(address _token) public {
     token = MindsToken(_token);
   }
 

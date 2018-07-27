@@ -40,7 +40,7 @@ contract MindsBoost {
    */
   event BoostRevoked(uint256 guid);
 
-  function MindsBoost(address _storage, address _token) {
+  constructor(address _storage, address _token) public {
     s = MindsBoostStorage(_storage);
     token = MindsToken(_token);
   }

@@ -89,7 +89,7 @@ contract MindsTokenSaleEvent is Whitelist {
   }
 
   // @return true if the transaction can buy tokens
-  function validPurchase() internal returns (bool) {
+  function validPurchase() internal view returns (bool) {
     bool nonZeroPurchase = msg.value > 0;
     return nonZeroPurchase;
   }
@@ -124,7 +124,7 @@ contract MindsTokenSaleEvent is Whitelist {
 
   // Check that enough tokens have been purchased
 
-  function areTokensOutstanding(address beneficiary, uint256 tokens) internal returns (bool) {
+  function areTokensOutstanding(address beneficiary, uint256 tokens) internal view returns (bool) {
     bool hasOutstanding = outstanding[beneficiary] > 0;
     bool isValid = tokens > 0;
     bool isEnough = tokens <= outstanding[beneficiary];

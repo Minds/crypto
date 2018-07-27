@@ -43,7 +43,7 @@ contract MindsWireStorage is Ownable {
    * @param sender The sender
    * @return uint
    */
-  function countWires(address receiver, address sender) public returns (uint) {
+  function countWires(address receiver, address sender) public view returns (uint) {
     return wires[receiver][sender].length;
   }
 

@@ -27,7 +27,7 @@ contract MindsWire is Whitelist {
     token = MindsToken(_token);
   }
 
-  function canIWire() public constant returns (bool) {
+  function canIWire() public view returns (bool) {
     uint balance = token.balanceOf(msg.sender);
     uint allowed = token.allowance(msg.sender, address(this));
 
@@ -68,7 +68,7 @@ contract MindsWire is Whitelist {
     return true;
   }
 
-  function hasSent(address receiver, uint amount, uint timestamp) public constant returns (bool) {
+  function hasSent(address receiver, uint amount, uint timestamp) public view returns (bool) {
     uint total;
 
     Wire memory _wire;

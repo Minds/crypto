@@ -45,7 +45,7 @@ contract MindsBoost {
     token = MindsToken(_token);
   }
 
-  function canIBoost() public constant returns (bool) {
+  function canIBoost() public view returns (bool) {
     uint balance = token.balanceOf(msg.sender);
     uint allowed = token.allowance(msg.sender, address(this));
 

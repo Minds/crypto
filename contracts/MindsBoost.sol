@@ -109,7 +109,7 @@ contract MindsBoost {
     return true;
   }
 
-  function accept(uint256 guid) {
+  function accept(uint256 guid) public {
 
     Boost memory _boost;
 
@@ -132,7 +132,7 @@ contract MindsBoost {
     emit BoostAccepted(guid);
   }
 
-  function reject(uint256 guid) {
+  function reject(uint256 guid) public {
     Boost memory _boost;
 
     //get the boost
@@ -154,7 +154,7 @@ contract MindsBoost {
     emit BoostRejected(guid);
   }
 
-  function revoke(uint256 guid) {
+  function revoke(uint256 guid) public {
     Boost memory _boost;
 
     //get the boost

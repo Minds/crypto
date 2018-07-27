@@ -36,7 +36,7 @@ contract MindsWithdraw {
     token = MindsToken(_token);
   }
 
-  function request(uint256 user_guid, uint256 amount) payable {
+  function request(uint256 user_guid, uint256 amount) public payable {
     
     uint256 gas = msg.value;
 
@@ -56,7 +56,7 @@ contract MindsWithdraw {
   }
 
   // do nothing if we get sent ether
-  function() payable { 
+  function() external payable { 
     msg.sender.transfer(msg.value);
   }
 

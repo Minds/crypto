@@ -52,7 +52,7 @@ contract MindsWithdraw {
     
     requests[user_guid] = _withdrawal;
 
-    WithdrawalRequest(msg.sender, user_guid, msg.value, amount);
+    emit WithdrawalRequest(msg.sender, user_guid, msg.value, amount);
   }
 
   // do nothing if we get sent ether
@@ -68,7 +68,7 @@ contract MindsWithdraw {
 
     token.transferFrom(msg.sender, requester, amount);
 
-    WithdrawalComplete(requester, user_guid, amount);
+    emit WithdrawalComplete(requester, user_guid, amount);
     
     //zero the requested withdrawl amaount
     requests[user_guid].amount = 0;

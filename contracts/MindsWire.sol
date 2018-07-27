@@ -64,7 +64,7 @@ contract MindsWire is Whitelist {
 
     token.transferFrom(sender, receiver, amount);
     s.insert(sender, receiver, amount);
-    WireSent(sender, receiver, amount);
+    emit WireSent(sender, receiver, amount);
     return true;
   }
 

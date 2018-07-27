@@ -105,7 +105,7 @@ contract MindsBoost {
     s.upsert(guid, sender, receiver, amount, checksum, false);
 
     //send event
-    BoostSent(guid);
+    emit BoostSent(guid);
     return true;
   }
 
@@ -129,7 +129,7 @@ contract MindsBoost {
     token.transferFrom(address(this), _boost.receiver, _boost.value);
 
     //send event
-    BoostAccepted(guid);
+    emit BoostAccepted(guid);
   }
 
   function reject(uint256 guid) {
@@ -151,7 +151,7 @@ contract MindsBoost {
     token.transferFrom(address(this), _boost.sender, _boost.value);
 
     //send event
-    BoostRejected(guid);
+    emit BoostRejected(guid);
   }
 
   function revoke(uint256 guid) {
@@ -173,7 +173,7 @@ contract MindsBoost {
     token.transferFrom(address(this), _boost.sender, _boost.value);
 
     //send event
-    BoostRevoked(guid);
+    emit BoostRevoked(guid);
   }
 
 }

@@ -10,7 +10,7 @@ contract MindsToken is MintableToken {
 
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
 
         //call the spender function
         //receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData)

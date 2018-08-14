@@ -8,12 +8,14 @@ const abi = require('ethereumjs-abi');
 contract('MindsWithdraw', (accounts) => {
   let withdraw,
     token,
+    forwardAddress,
     requester,
     minds;
 
   beforeEach(async () => {
     token = await MindsToken.new();
-    withdraw = await MindsWithdraw.new(token.address);
+    forwardAddress = accounts[5];
+    withdraw = await MindsWithdraw.new(token.address, forwardAddress);
 
     requester = accounts[1];
     minds = accounts[2];
@@ -39,6 +41,23 @@ contract('MindsWithdraw', (accounts) => {
         }
       });
     });
+
+  });
+
+  it ("should forward ETH sent to our forwardAddress", async () => {
+
+    let balance = await web3.eth.getBalance(accounts[5]);
+
+    await withdraw.request(123123, 10, { 
+      from: requester,
+      value: 50,
+      gas: 1000000 
+    });
+
+    let actualBalance = await web3.eth.getBalance(accounts[5]);
+    let expectedBalance = balance.add(50);
+
+    assert.equal(actualBalance.toString(), expectedBalance.toString());
 
   });
 

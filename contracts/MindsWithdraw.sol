@@ -1,8 +1,10 @@
 pragma solidity ^0.4.24;
 
 import './MindsToken.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
-contract MindsWithdraw {
+
+contract MindsWithdraw is Ownable {
 
   struct Withdrawal {
     address requester;
@@ -12,6 +14,9 @@ contract MindsWithdraw {
   }
 
   MindsToken public token;
+
+  /** Address which receives the gas **/
+  address public forwardAddress;
  
   mapping(uint256 => Withdrawal) public requests;
 
@@ -32,8 +37,9 @@ contract MindsWithdraw {
    */
   event WithdrawalComplete(address requester, uint256 user_guid, uint256 amount);
 
-  constructor(address _token) public {
+  constructor(address _token, address _forwardAddress) public {
     token = MindsToken(_token);
+    forwardAddress = _forwardAddress;
   }
 
   function request(uint256 user_guid, uint256 amount) public payable {
@@ -51,6 +57,9 @@ contract MindsWithdraw {
     );
     
     requests[user_guid] = _withdrawal;
+
+    //forward funds to our address to cover gas
+    forwardAddress.transfer(gas);
 
     emit WithdrawalRequest(msg.sender, user_guid, msg.value, amount);
   }
@@ -74,6 +83,14 @@ contract MindsWithdraw {
     requests[user_guid].amount = 0;
 
     return true;
+  }
+
+  /**
+   * Set the forward address to receive the gas
+   * @param addr The address to receive the gas
+   */
+  function setForwardAddress(address addr) public onlyOwner {
+    forwardAddress = addr;
   }
 
 }

@@ -190,4 +190,27 @@ contract('MindsTokenSaleEvent', (accounts) => {
 
   });
 
+  describe('changing rate', () => {
+
+    it('should change the rate', async () => {
+
+      assert.equal(rate, (await tse.rate.call()).toNumber());
+
+      await tse.modifyRate(1000, { from: accounts[1] });
+
+      assert.equal(1000, (await tse.rate.call()).toNumber());
+
+      // confirm the purchase amount is using the new rate
+
+      await tse.buyTokens(accounts[1], { 
+        value: web3.toWei(1, 'ether'),
+        from: accounts[3],
+      });
+
+      let outstanding = await tse.outstanding.call(accounts[1]);
+      assert.equal(outstanding.toNumber(), web3.toWei(1000, "ether"));
+    });
+
+  });
+
 });

@@ -122,6 +122,14 @@ contract MindsTokenSaleEvent is Whitelist {
     emit TokenDecline(beneficiary, tokens);
   }
 
+  // Modify the rate
+
+  function modifyRate(uint256 _rate) external 
+    onlyIfWhitelisted(msg.sender) {
+
+    rate = _rate;
+  }
+
   // Check that enough tokens have been purchased
 
   function areTokensOutstanding(address beneficiary, uint256 tokens) internal view returns (bool) {

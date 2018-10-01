@@ -28,22 +28,49 @@ contract MindsTokenSaleEvent is Whitelist {
    * event for token purchase logging
    * @param purchaser who paid for the tokens
    * @param tokens amount of tokens purchased
+   * @param weiAmount amount of wei sent
+   * @param rate the rate 
    */
-  event TokenPurchase(address purchaser, uint256 tokens);
+  event TokenPurchase(
+    address purchaser,
+    uint256 tokens,
+    uint256 weiAmount,
+    uint256 rate
+  );
 
   /**
    * Event for token issuance
    * @param purchaser Address who purchased the tokens
    * @param tokens amount of tokens purchased
+   * @param rate the rate used
    */
-  event TokenIssue(address purchaser, uint256 tokens);
+  event TokenIssue(
+    address purchaser,
+    uint256 tokens,
+    uint256 rate
+  );
 
   /**
    * Event for declining token
    * @param purchaser Address who purchased the tokens
    * @param tokens amount of tokens purchased
+   * @param weiAmount the amount of wei refunded
+   * @param rate the rate used for the refund
    */
-  event TokenDecline(address purchaser, uint256 tokens);
+  event TokenDecline(
+    address purchaser,
+    uint256 tokens,
+    uint256 weiAmount,
+    uint256 rate
+  );
+
+  /**
+   * Event for rate change
+   * @param newRate the rate changed
+   */
+  event RateModified(
+    uint256 newRate
+  );
 
   constructor(uint256 _rate, address _wallet, address _token) public {
     require(_rate > 0);
@@ -56,13 +83,14 @@ contract MindsTokenSaleEvent is Whitelist {
 
   // fallback function can be used to buy tokens
   function () external payable {
-    buyTokens(msg.sender);
+    buyTokens(msg.sender, rate);
   }
 
   // low level token purchase function
-  function buyTokens(address beneficiary) public payable {
+  function buyTokens(address beneficiary, uint256 _rate) public payable {
     require(beneficiary != address(0));
     require(validPurchase());
+    require(_rate == rate); // Ensure the sender has sent the correct rate variable
 
     uint256 weiAmount = msg.value;
 
@@ -79,7 +107,7 @@ contract MindsTokenSaleEvent is Whitelist {
     forwardFunds();
 
     // send event
-    emit TokenPurchase(beneficiary, tokens);
+    emit TokenPurchase(beneficiary, tokens, weiAmount, rate);
   }
 
   // send ether to the fund collection wallet
@@ -106,20 +134,23 @@ contract MindsTokenSaleEvent is Whitelist {
 
     // send our tokens
     token.transferFrom(wallet, beneficiary, tokens);
-    emit TokenIssue(beneficiary, tokens);
+    emit TokenIssue(beneficiary, tokens, rate);
   }
 
   // Decline the tokens
 
-  function decline(address beneficiary, uint256 tokens) external 
+  function decline(address beneficiary, uint256 tokens, uint256 _rate) external 
     onlyIfWhitelisted(msg.sender) {
+
+    require(_rate > 0); // Ensure rate is above 0
+
     decreaseOutstandingPurchases(beneficiary, tokens);
 
     //refund the ETH value
-    uint256 weiAmount = tokens.div(rate);
+    uint256 weiAmount = tokens.div(_rate);
     token.transferFrom(wallet, beneficiary, weiAmount); 
    
-    emit TokenDecline(beneficiary, tokens);
+    emit TokenDecline(beneficiary, tokens, weiAmount, _rate);
   }
 
   // Modify the rate
@@ -127,7 +158,17 @@ contract MindsTokenSaleEvent is Whitelist {
   function modifyRate(uint256 _rate) external 
     onlyIfWhitelisted(msg.sender) {
 
+    require(_rate > 0); // Ensure rate is above 0
+
     rate = _rate;
+
+    emit RateModified(_rate);
+  }
+
+  // Return the current rate
+
+  function getRate() public view returns (uint256) {
+    return rate;
   }
 
   // Check that enough tokens have been purchased

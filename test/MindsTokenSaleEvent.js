@@ -26,7 +26,7 @@ contract('MindsTokenSaleEvent', (accounts) => {
   describe('accepting purchases', () => {
 
     it ('should accept a purchase', async () => {
-      await tse.buyTokens(accounts[1], { 
+      await tse.buyTokens(accounts[1], rate, { 
         value: web3.toWei(1, 'ether'),
         from: accounts[3],
       });
@@ -38,7 +38,7 @@ contract('MindsTokenSaleEvent', (accounts) => {
     it ('should not accept a purchase is 0', async () => {
       let errored = false;
       try {
-        await tse.buyTokens(accounts[1], { 
+        await tse.buyTokens(accounts[1], rate, { 
           value: web3.toWei(0, 'ether'),
           from: accounts[3],
         });
@@ -61,7 +61,7 @@ contract('MindsTokenSaleEvent', (accounts) => {
   describe('issuing tokens', () => {
 
     it('should issue tokens if purchase is made', async () => {
-      await tse.buyTokens(accounts[3], { 
+      await tse.buyTokens(accounts[3], rate, { 
         value: web3.toWei(2, 'ether'),
         from: accounts[3],
       });
@@ -94,7 +94,7 @@ contract('MindsTokenSaleEvent', (accounts) => {
     it('should not issue tokens if not whitelisted', async () => {
       let errored = false;
 
-      await tse.buyTokens(accounts[3], { 
+      await tse.buyTokens(accounts[3], rate, { 
         value: web3.toWei(2, 'ether'),
         from: accounts[3],
       });
@@ -143,7 +143,7 @@ contract('MindsTokenSaleEvent', (accounts) => {
       let outstanding = await tse.outstanding.call(accounts[3]);
       assert.equal(outstanding.toNumber(), web3.toWei(350, "ether"));
       
-      await tse.decline(accounts[3], web3.toWei(350, "ether"), { from: accounts[1] });
+      await tse.decline(accounts[3], web3.toWei(350, "ether"), web3.toWei(1000, "ether"), { from: accounts[1] });
 
       let newOutstanding = await tse.outstanding.call(accounts[3]);
       assert.equal(newOutstanding.toNumber(), web3.toWei(0, "ether"));
@@ -194,21 +194,46 @@ contract('MindsTokenSaleEvent', (accounts) => {
 
     it('should change the rate', async () => {
 
-      assert.equal(rate, (await tse.rate.call()).toNumber());
+      assert.equal(rate, (await tse.getRate()).toNumber());
 
       await tse.modifyRate(1000, { from: accounts[1] });
 
-      assert.equal(1000, (await tse.rate.call()).toNumber());
+      assert.equal(1000, (await tse.getRate()).toNumber());
 
       // confirm the purchase amount is using the new rate
 
-      await tse.buyTokens(accounts[1], { 
+      await tse.buyTokens(accounts[1], 1000, { 
         value: web3.toWei(1, 'ether'),
         from: accounts[3],
       });
 
       let outstanding = await tse.outstanding.call(accounts[1]);
       assert.equal(outstanding.toNumber(), web3.toWei(1000, "ether"));
+    });
+
+    it('should not allow negative rate to be set', async () => {
+      let errored = false;
+      try {
+        await tse.modifyRate(0, { from: accounts[1] });
+      } catch (e) {
+        errored = true;
+      }
+
+      assert.equal(errored, true);
+    });
+
+    it('should not allow buyer to use a different rate', async () => {
+      let errored = false;
+      try {
+        await tse.buyTokens(accounts[1], web3.toWei(1, "ether"), { 
+          value: web3.toWei(1, 'ether'),
+          from: accounts[3],
+        });
+      } catch (e) {
+        errored = true;
+      }
+
+      assert.equal(errored, true);
     });
 
   });

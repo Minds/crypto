@@ -140,6 +140,7 @@ contract MindsTokenSaleEvent is Whitelist {
   // Decline the tokens
 
   function decline(address beneficiary, uint256 tokens, uint256 _rate) external 
+    payable
     onlyIfWhitelisted(msg.sender) {
 
     require(_rate > 0); // Ensure rate is above 0
@@ -148,7 +149,10 @@ contract MindsTokenSaleEvent is Whitelist {
 
     //refund the ETH value
     uint256 weiAmount = tokens.div(_rate);
-    token.transferFrom(wallet, beneficiary, weiAmount); 
+
+    require(msg.value == weiAmount); // Check that the senders rate is correct
+
+    beneficiary.transfer(weiAmount); // This will deduct from the *SENDER*
    
     emit TokenDecline(beneficiary, tokens, weiAmount, _rate);
   }

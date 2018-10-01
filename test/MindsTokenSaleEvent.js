@@ -142,8 +142,11 @@ contract('MindsTokenSaleEvent', (accounts) => {
 
       let outstanding = await tse.outstanding.call(accounts[3]);
       assert.equal(outstanding.toNumber(), web3.toWei(350, "ether"));
-      
-      await tse.decline(accounts[3], web3.toWei(350, "ether"), web3.toWei(1000, "ether"), { from: accounts[1] });
+
+      await tse.decline(accounts[3], web3.toWei(350, "ether"), rate, { 
+        from: accounts[1],
+        value: web3.toWei(1, "ether"), // must send to avoid revert
+      });
 
       let newOutstanding = await tse.outstanding.call(accounts[3]);
       assert.equal(newOutstanding.toNumber(), web3.toWei(0, "ether"));
@@ -177,7 +180,10 @@ contract('MindsTokenSaleEvent', (accounts) => {
 
       let errored = false;
       try {      
-        await tse.decline(accounts[3], web3.toWei(350, "ether"), { from: accounts[3] });
+        await tse.decline(accounts[3], web3.toWei(350, "ether"), rate, { 
+          from: accounts[3],
+          value: value,
+        });
       } catch (err) {
         errored = true;
       }

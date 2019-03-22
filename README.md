@@ -7,5 +7,8 @@
 - Boost: [0xad6c30d7995484aef9465b3c41cfae1994be7124](https://rinkeby.etherscan.io/address/0x8fb8b0f28e4ef0125b9abaa39d7e4cd028dd17bc)
 - Withdrawal: [0x4d09aa10ec584ff102e5e2da96888ac0dc6048f2](https://rinkeby.etherscan.io/address/0x4d09aa10ec584ff102e5e2da96888ac0dc6048f2)
 
+## Mainnet
+
+- Token: [0xb26631c6dda06ad89b93c71400d25692de89c068](https://etherscan.io/address/0xb26631c6dda06ad89b93c71400d25692de89c068)
 
 _Copyright Minds 2018_
